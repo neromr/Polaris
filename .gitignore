@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Entorno de ejecucion de Minecraft/Forge generado localmente
+run/
+run-data/
+logs/
+eclipse/
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+*.launch
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
