@@ -1,5 +1,3 @@
-package com.noctis.nanookmod.event;
-
 import com.noctis.nanookmod.NanookMod;
 import com.noctis.nanookmod.ai.GoalUtil;
 import com.noctis.nanookmod.ai.NanookBearGoals;
@@ -32,13 +30,8 @@ import java.util.UUID;
 @Mod.EventBusSubscriber(modid = NanookMod.MOD_ID)
 public class NanookEventHandler {
 
-    /** El doble de dificil que el mob mas dificil de domesticar en vanilla
-     *  (el loro, con 10% de probabilidad por semilla -> aqui 5%). */
     private static final float TAME_CHANCE = 0.05F;
 
-    // ------------------------------------------------------------------
-    // 1) Interaccion: domesticar, alimentar, ordenar y montar
-    // ------------------------------------------------------------------
     @SubscribeEvent
     public static void onInteract(PlayerInteractEvent.EntityInteract event) {
         if (!(event.getTarget() instanceof PolarBear bear)) return;
@@ -54,7 +47,6 @@ public class NanookEventHandler {
 
         boolean isOwner = NanookBearData.isOwner(bear, player);
 
-        // Agacharse + click al dueno = ciclar orden (Seguir/Quieto/Deambular)
         if (isOwner && player.isShiftKeyDown()) {
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);
@@ -65,7 +57,6 @@ public class NanookEventHandler {
             return;
         }
 
-        // Alimentar con bacalao crudo cura al oso ya domesticado
         if (isOwner && stack.is(Items.COD) && bear.getHealth() < bear.getMaxHealth()) {
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);
@@ -75,9 +66,6 @@ public class NanookEventHandler {
             return;
         }
 
-        // Montar: el dueno siempre puede subir; un segundo jugador solo si
-        // el dueno ya esta montado (monta "sobre" el dueno para lograr el
-        // segundo asiento sin tener que alterar la clase PolarBear).
         if (!player.isShiftKeyDown() && stack.isEmpty()) {
             if (isOwner && bear.getPassengers().isEmpty()) {
                 event.setCanceled(true);
@@ -119,12 +107,13 @@ public class NanookEventHandler {
             }
         } else {
             level.sendParticles(ParticleTypes.SMOKE, bear.getX(), bear.getY() + 1, bear.getZ(), 6, 0.5, 0.5, 0.5, 0.0);
+            level.playSound(null, bear.blockPosition(), SoundEvents.VILLAGER_NO, SoundSource.NEUTRAL, 1.0F, 1.0F);
+            if (player instanceof ServerPlayer sp) {
+                sp.displayClientMessage(Component.translatable("nanookmod.tame.fail"), true);
+            }
         }
     }
 
-    // ------------------------------------------------------------------
-    // 2) Al cargar el mundo: reaplicar la IA a los osos ya domesticados
-    // ------------------------------------------------------------------
     @SubscribeEvent
     public static void onJoinLevel(EntityJoinLevelEvent event) {
         if (event.getLevel().isClientSide) return;
@@ -144,10 +133,6 @@ public class NanookEventHandler {
         GoalUtil.getTargetSelector(bear).addGoal(2, new NanookBearGoals.AssistOwnerGoal(bear));
     }
 
-    // ------------------------------------------------------------------
-    // 3) La Bendicion de Nanook: ningun oso polar ataca a quien la tenga,
-    //    ni siquiera cerca de una cria ni si el jugador ataca primero.
-    // ------------------------------------------------------------------
     @SubscribeEvent
     public static void onChangeTarget(LivingChangeTargetEvent event) {
         if (!(event.getEntity() instanceof PolarBear)) return;
@@ -156,10 +141,15 @@ public class NanookEventHandler {
         }
     }
 
-    // ------------------------------------------------------------------
-    // 4) Movimiento al ser montado (el oso no tiene control de jinete en
-    //    vanilla, asi que lo aplicamos manualmente cada tick).
-    // ------------------------------------------------------------------
+    @SubscribeEvent
+    public static void onAttack(net.minecraftforge.event.entity.living.LivingAttackEvent event) {
+        if (event.getSource().getEntity() instanceof PolarBear
+                && event.getEntity() instanceof Player player
+                && NanookBearData.hasBlessing(player)) {
+            event.setCanceled(true);
+        }
+    }
+
     @SubscribeEvent
     public static void onBearTick(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof PolarBear bear)) return;

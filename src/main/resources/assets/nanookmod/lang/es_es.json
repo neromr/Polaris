@@ -3,6 +3,7 @@
   "advancements.nanookmod.nanook_blessing.title": "La Bendicion Nanook",
   "advancements.nanookmod.nanook_blessing.description": "Domestica a un oso polar",
   "nanookmod.tame.success": "El oso te acepta. La Bendicion de Nanook despierta en ti.",
+  "nanookmod.tame.fail": "El oso todavia no confia en ti.",
   "nanookmod.command.follow": "El oso te seguira",
   "nanookmod.command.sit": "El oso se queda quieto",
   "nanookmod.command.wander": "El oso deambula libremente"
